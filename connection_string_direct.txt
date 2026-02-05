@@ -1,0 +1,1 @@
+Host=db.hrfrntytehvrnjamjnbb.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=a72912004anh@;Ssl Mode=Require;Trust Server Certificate=true;

@@ -145,6 +145,13 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred while seeding the database.");
+        // Explicitly print to Console for easy viewing in Render logs
+        Console.WriteLine($"CRITICAL ERROR during DB Init: {ex.GetType().Name}: {ex.Message}");
+        Console.WriteLine(ex.StackTrace);
+        if (ex.InnerException != null)
+        {
+             Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+        }
     }
 }
 
