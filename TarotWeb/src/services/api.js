@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5013/api'; // Adjust port if needed
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5013/api';
 
 export const postReading = async (question, selectedCardIds) => {
     try {
