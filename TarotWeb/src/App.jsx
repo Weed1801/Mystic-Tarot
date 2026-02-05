@@ -61,6 +61,12 @@ function App() {
   const handleCardPick = async (cardId) => {
     if (selectedCards.length >= 3) return;
 
+    // Prevent picking fallback cards (which have string IDs like 'deck-card-0')
+    if (typeof cardId === 'string' && cardId.startsWith('deck-card')) {
+      alert("Không thể kết nối đến server để lấy dữ liệu bài. Vui lòng kiểm tra kết nối mạng hoặc server.");
+      return;
+    }
+
     // Temporary placeholder until API returns real data
     const tempCard = {
       id: cardId,

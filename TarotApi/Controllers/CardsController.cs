@@ -19,6 +19,15 @@ public class CardsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TarotCard>>> GetCards()
     {
-        return await _context.TarotCards.ToListAsync();
+        try 
+        {
+            return await _context.TarotCards.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            // Log the error (optional: inject ILogger)
+            Console.WriteLine($"Error fetching cards: {ex.Message}");
+            return StatusCode(500, "Internal Server Error: Unable to fetch cards.");
+        }
     }
 }
