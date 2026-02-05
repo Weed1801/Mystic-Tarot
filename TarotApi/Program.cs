@@ -11,8 +11,54 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 // Configure EF Core with Npgsql
+// Configure EF Core with Npgsql
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    
+    // Fallback to DATABASE_URL if DefaultConnection is missing (common in cloud envs)
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+    }
+
+    if (!string.IsNullOrEmpty(connectionString))
+    {
+        // Check if it's a URI (postgres://) and convert to connection string
+        try 
+        {
+            if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
+            {
+                var uri = new Uri(connectionString);
+                var userInfo = uri.UserInfo.Split(':');
+                var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder
+                {
+                    Host = uri.Host,
+                    Port = uri.Port > 0 ? uri.Port : 5432,
+                    Username = userInfo[0],
+                    Password = userInfo[1],
+                    Database = uri.LocalPath.TrimStart('/'),
+                    SslMode = Npgsql.SslMode.Require, 
+                    TrustServerCertificate = true // Often required for cloud hosted DBs like Supabase/Render
+                };
+                connectionString = npgsqlBuilder.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error parsing connection string URI: {ex.Message}. Falling back to original string.");
+        }
+    }
+    
+    // Log the start of the connection string for debugging (don't log the password!)
+    if (!string.IsNullOrEmpty(connectionString))
+    {
+        var safeLog = connectionString.Length > 15 ? connectionString.Substring(0, 15) + "..." : "ShortString";
+        Console.WriteLine($"Using Connection String starting with: {safeLog}");
+    }
+
+    options.UseNpgsql(connectionString);
+});
 
 builder.Services.AddHttpClient<IGeminiService, GeminiService>();
 
