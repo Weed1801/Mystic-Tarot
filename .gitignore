@@ -39,3 +39,8 @@ venv/
 .venv/
 env/
 .env/
+
+# Logs
+*.log
+build_log.txt
+msbuild.log
