@@ -47,9 +47,18 @@ app.MapControllers();
 // Seed Data
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<AppDbContext>();
-    DbSeeder.Seed(context);
+    try 
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        // Apply migrations automatically if needed, or just seed
+        // context.Database.Migrate(); 
+        DbSeeder.Seed(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
 }
 
 app.Run();
