@@ -102,7 +102,7 @@ function App() {
         setGameState('revealing');
       } catch (error) {
         console.error("Reading failed", error);
-        alert("Failed to consult the stars. Please try again.");
+        alert("Không thể kết nối với các vì sao. Vui lòng thử lại.");
         setGameState('picking'); // Go back to picking state or reset?
         setSelectedCards([]);
       }
@@ -125,7 +125,7 @@ function App() {
 
       <main className="z-10 w-full max-w-6xl flex flex-col items-center gap-4 md:gap-8 min-h-[90vh]">
         <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-mystic-gold to-orange-400 text-center drop-shadow-lg animate-pulse-slow mt-4 md:mt-0">
-          Mystic Tarot
+          Tarot Thần Bí
         </h1>
 
         <div className="flex-1 flex flex-col items-center justify-center gap-4 md:gap-12 w-full relative">
@@ -149,7 +149,7 @@ function App() {
                 className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-black/80 backdrop-blur-md rounded-xl"
               >
                 <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 animate-pulse shadow-[0_0_50px_rgba(168,85,247,0.6)] mb-4"></div>
-                <p className="text-mystic-gold font-serif text-xl animate-pulse">Consulting the Stars...</p>
+                <p className="text-mystic-gold font-serif text-xl animate-pulse">Đang Hỏi Các Vì Sao...</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -184,7 +184,7 @@ function App() {
                 onClick={() => setGameState('intro')}
                 className="text-mystic-gold hover:text-white transition-colors font-serif border-b border-mystic-gold/50 text-sm md:text-base"
               >
-                Start New Reading
+                Bắt Đầu Trải Bài Mới
               </button>
             )}
           </div>
