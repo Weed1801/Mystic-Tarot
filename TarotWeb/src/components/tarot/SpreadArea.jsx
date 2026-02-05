@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import TarotCard from './TarotCard';
 import TypewriterText from '../ui/TypewriterText';
 import { useSound } from '../../contexts/SoundContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 const Slot = ({ label, card, isRevealed, onReveal, analysis, canReveal, onReadingComplete }) => {
     const { playSound, stopSound } = useSound();
