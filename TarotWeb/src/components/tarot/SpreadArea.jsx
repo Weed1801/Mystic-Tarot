@@ -78,7 +78,8 @@ const Slot = ({ label, card, isRevealed, onReveal, analysis, canReveal, onReadin
 };
 
 const SpreadArea = ({ cards = [], isRevealed, onCardReveal, readingResult }) => {
-    const [readingProgress, setReadingProgress] = useState(-1); // -1: none started, 0: first done, 1: second done...
+    const [readingProgress, setReadingProgress] = useState(-1);
+    const finalAdviceRef = useRef(null);
 
     const slots = [
         { label: 'Quá Khứ', key: 'past' },
@@ -86,27 +87,35 @@ const SpreadArea = ({ cards = [], isRevealed, onCardReveal, readingResult }) => 
         { label: 'Tương Lai', key: 'future' }
     ];
 
-    // Reset progress when new reading starts (cards hidden)
     useEffect(() => {
         if (!isRevealed) {
             setReadingProgress(-1);
         }
     }, [isRevealed]);
 
-    // Helper to get analysis text safely
+    const allCardsRevealed = cards.every(c => c.isRevealed);
+    const finalAdviceText = readingResult?.final_advice || readingResult?.finalAdvice || readingResult?.FinalAdvice;
+
+    // Auto-scroll to final advice when it appears
+    useEffect(() => {
+        if (isRevealed && allCardsRevealed && finalAdviceText && finalAdviceRef.current) {
+            setTimeout(() => {
+                finalAdviceRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 500);
+        }
+    }, [isRevealed, allCardsRevealed, finalAdviceText]);
+
     const getAnalysis = (key) => {
         if (!readingResult) return null;
-        if (key === 'past') return readingResult.pastAnalysis || readingResult.past_analysis;
-        if (key === 'present') return readingResult.presentAnalysis || readingResult.present_analysis;
-        if (key === 'future') return readingResult.futureAnalysis || readingResult.future_analysis;
+        // Check for all case variations
+        if (key === 'past') return readingResult.pastAnalysis || readingResult.PastAnalysis || readingResult.past_analysis;
+        if (key === 'present') return readingResult.presentAnalysis || readingResult.PresentAnalysis || readingResult.present_analysis;
+        if (key === 'future') return readingResult.futureAnalysis || readingResult.FutureAnalysis || readingResult.future_analysis;
         return null;
     };
 
-
-    const allCardsRevealed = cards.every(c => c.isRevealed);
-
     return (
-        <div className="w-full flex flex-col items-center gap-8">
+        <div className="w-full flex flex-col items-center gap-8 pb-20">
             <div className="flex flex-wrap justify-center gap-8 md:gap-8 w-full max-w-6xl px-4 min-h-[450px]">
                 {slots.map((slot, index) => (
                     <Slot
@@ -127,18 +136,20 @@ const SpreadArea = ({ cards = [], isRevealed, onCardReveal, readingResult }) => 
             </div>
 
             {/* Final Advice Section */}
-            {isRevealed && allCardsRevealed && (readingResult?.final_advice || readingResult?.finalAdvice) && (
+            {isRevealed && allCardsRevealed && finalAdviceText && (
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    ref={finalAdviceRef}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1, duration: 0.8 }}
-                    className="w-full max-w-4xl p-6 md:p-8 mt-4 rounded-xl border border-mystic-gold/30 bg-black/60 backdrop-blur-md shadow-[0_0_30px_rgba(255,215,0,0.1)]"
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                    className="w-full max-w-4xl p-6 md:p-8 mt-8 rounded-xl border border-mystic-gold/40 bg-black/80 backdrop-blur-md shadow-[0_0_40px_rgba(255,215,0,0.15)] relative z-50"
                 >
-                    <h3 className="text-xl md:text-2xl font-serif text-mystic-gold text-center mb-4 uppercase tracking-widest">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black px-4 text-mystic-gold text-2xl">✨</div>
+                    <h3 className="text-xl md:text-2xl font-serif text-mystic-gold text-center mb-6 uppercase tracking-[0.2em] border-b border-white/10 pb-4">
                         Lời Khuyên Từ Vũ Trụ
                     </h3>
-                    <div className="text-white/90 text-base md:text-lg font-serif leading-relaxed text-center">
-                        <TypewriterText text={readingResult.final_advice || readingResult.finalAdvice} delay={20} />
+                    <div className="text-white/90 text-base md:text-lg font-serif leading-relaxed text-justify md:text-center px-2 md:px-6">
+                        <TypewriterText text={finalAdviceText} delay={15} />
                     </div>
                 </motion.div>
             )}
