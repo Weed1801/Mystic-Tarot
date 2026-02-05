@@ -123,17 +123,17 @@ function App() {
       <Background />
       <MuteButton />
 
-      <main className="z-10 w-full max-w-6xl flex flex-col items-center gap-8 min-h-[80vh]">
-        <h1 className="text-4xl md:text-6xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-mystic-gold to-orange-400 text-center drop-shadow-lg animate-pulse-slow">
+      <main className="z-10 w-full max-w-6xl flex flex-col items-center gap-4 md:gap-8 min-h-[90vh]">
+        <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-mystic-gold to-orange-400 text-center drop-shadow-lg animate-pulse-slow mt-4 md:mt-0">
           Mystic Tarot
         </h1>
 
-        <div className="flex-1 flex flex-col items-center justify-center gap-12 w-full relative">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 md:gap-12 w-full relative">
 
           {/* Intro / Question Input */}
           <AnimatePresence>
             {gameState === 'intro' && (
-              <div className="absolute inset-0 flex items-center justify-center z-40 bg-black/60 backdrop-blur-sm rounded-xl">
+              <div className="absolute inset-0 flex items-center justify-center z-40 bg-black/60 backdrop-blur-sm rounded-xl p-4">
                 <QuestionInput onStart={handleStart} />
               </div>
             )}
@@ -155,8 +155,8 @@ function App() {
           </AnimatePresence>
 
 
-          {/* Spread Area */}
-          <div className="w-full h-auto min-h-[400px] flex items-center justify-center z-10">
+          {/* Spread Area - Flexible height */}
+          <div className="w-full h-auto flex flex-col items-center justify-center z-10 min-h-[300px] md:min-h-[400px]">
             <SpreadArea
               cards={selectedCards}
               isRevealed={gameState === 'revealing'}
@@ -165,8 +165,8 @@ function App() {
             />
           </div>
 
-          {/* Deck Area */}
-          <div className="h-60 w-full flex items-center justify-center relative z-20">
+          {/* Deck Area - Compact on mobile */}
+          <div className="h-40 md:h-60 w-full flex items-center justify-center relative z-20">
             {gameState !== 'revealing' && gameState !== 'intro' && gameState !== 'analyzing' && (
               <DeckComponent
                 gameState={gameState}
@@ -178,11 +178,11 @@ function App() {
           </div>
 
           {/* Controls - e.g. Reset */}
-          <div className="z-30">
+          <div className="z-30 pb-4">
             {gameState === 'revealing' && (
               <button
                 onClick={() => setGameState('intro')}
-                className="text-mystic-gold hover:text-white transition-colors font-serif border-b border-mystic-gold/50"
+                className="text-mystic-gold hover:text-white transition-colors font-serif border-b border-mystic-gold/50 text-sm md:text-base"
               >
                 Start New Reading
               </button>

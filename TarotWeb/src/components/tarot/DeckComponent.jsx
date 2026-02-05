@@ -3,14 +3,23 @@ import TarotCard from './TarotCard';
 import { useState, useEffect } from 'react';
 import { useSound } from '../../contexts/SoundContext';
 
+
 const DeckComponent = ({ gameState, onCardPick, cards = [], selectedCards = [] }) => {
     const { playSound } = useSound();
-    // Generate a visual subset of cards for the deck/fan animation
     const [displayCards, setDisplayCards] = useState([]);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         if (cards.length > 0) {
-            setDisplayCards(cards.map((c, i) => ({ ...c, index: i, zIndex: i })));
+            // PERFORMANCE: Limit to 28 cards max to prevent lag on mobile
+            // Use a stable subset so it doesn't flicker
+            setDisplayCards(cards.slice(0, 28).map((c, i) => ({ ...c, index: i, zIndex: i })));
         } else {
             // Fallback
             const fallback = Array.from({ length: 24 }, (_, i) => ({ id: `deck-card-${i}`, index: i }));
@@ -21,48 +30,50 @@ const DeckComponent = ({ gameState, onCardPick, cards = [], selectedCards = [] }
     // Fan Animation Variants
     const getCardStyle = (index, total) => {
         if (gameState === 'fanning' || gameState === 'picking') {
-            const spreadAngle = 120; // Total angle of the fan
+            // Mobile: tighter fan, less spread
+            const spreadAngle = isMobile ? 80 : 120;
+            const radius = isMobile ? 300 : 400;
+            const xFactor = isMobile ? 0.4 : 0.6;
+            const yOffset = isMobile ? 20 : 50;
+
             const startAngle = -spreadAngle / 2;
             const angleStep = spreadAngle / (total - 1);
             const rotate = startAngle + index * angleStep;
 
-            // Calculate X/Y based on arc
-            const radius = 400; // Radius of the arc circle
             const radian = (rotate * Math.PI) / 180;
-            const x = Math.sin(radian) * radius * 0.6; // Scale down horizontal spread
-            const y = Math.cos(radian) * -radius * 0.2 + 50; // Flatten the arc slightly
+            const x = Math.sin(radian) * radius * xFactor;
+            const y = Math.cos(radian) * -radius * 0.2 + yOffset;
 
-            return {
-                x,
-                y,
-                rotate,
-                zIndex: index,
-            };
+            return { x, y, rotate, zIndex: index };
         }
 
         // Stacked state
         return {
             x: 0,
-            y: index * -0.5, // Slight stack offset
-            rotate: index % 2 === 0 ? 1 : -1, // Imperfect stack
+            y: index * -0.2, // Tighter stack
+            rotate: index % 2 === 0 ? 1 : -1,
             zIndex: index,
         };
     };
 
     const isInteractive = gameState === 'picking';
 
-
     return (
-        <div className={`relative h-64 flex justify-center items-center transition-all duration-500 transform scale-[0.55] sm:scale-75 md:scale-100 origin-bottom ${gameState === 'picking' ? 'w-full max-w-4xl' : 'w-40'}`}>
+        <div className={`relative flex justify-center items-center transition-all duration-500 
+            ${gameState === 'picking' ? 'h-64 w-full max-w-4xl' : 'h-40 w-32'}
+            ${isInteractive ? 'cursor-pointer' : ''}
+        `}>
             {displayCards.map((card, i) => {
+                // Don't render picked cards in the deck
                 if (selectedCards.some(s => s.id === card.id)) return null;
+
                 const style = getCardStyle(i, displayCards.length);
 
                 return (
                     <motion.div
                         key={card.id}
                         layoutId={card.id}
-                        className="absolute"
+                        className="absolute will-change-transform" // Performance hint
                         initial={false}
                         animate={{
                             x: gameState === 'shuffling' ? [0, -10, 10, -5, 5, 0] : style.x,
@@ -72,24 +83,14 @@ const DeckComponent = ({ gameState, onCardPick, cards = [], selectedCards = [] }
                             scale: gameState === 'shuffling' ? [1, 1.05, 0.95, 1.02, 1] : 1
                         }}
                         whileHover={isInteractive ? {
-                            scale: 1.2,
-                            y: style.y - 30,
+                            scale: 1.1,
+                            y: style.y - 20,
                             zIndex: 100
                         } : {}}
                         transition={
                             gameState === 'shuffling'
-                                ? {
-                                    duration: 0.5,
-                                    repeat: Infinity,
-                                    repeatType: "reverse",
-                                    ease: "easeInOut"
-                                }
-                                : {
-                                    type: "spring",
-                                    stiffness: 200,
-                                    damping: 20,
-                                    delay: i * 0.02 // Stagger effect
-                                }
+                                ? { duration: 0.5, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }
+                                : { type: "spring", stiffness: 200, damping: 25, mass: 0.5 } // Lighter physics
                         }
                         onClick={() => {
                             if (isInteractive) {
@@ -98,13 +99,13 @@ const DeckComponent = ({ gameState, onCardPick, cards = [], selectedCards = [] }
                             }
                         }}
                     >
-                        {/* We pass a stripped down simplified card here for deck view */}
                         <TarotCard
                             id={card.id}
-                            className="shadow-xl"
+                            className="shadow-lg"
+                            // Pass explicit small dimensions for the deck view to save pixel rendering
                             style={{
-                                width: gameState === 'picking' || gameState === 'fanning' ? '80px' : undefined,
-                                height: gameState === 'picking' || gameState === 'fanning' ? '120px' : undefined
+                                width: isMobile ? '60px' : '90px',
+                                height: isMobile ? '100px' : '150px'
                             }}
                         />
                     </motion.div>
