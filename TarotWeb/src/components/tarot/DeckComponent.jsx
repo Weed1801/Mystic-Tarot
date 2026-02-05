@@ -75,6 +75,11 @@ const DeckComponent = ({ gameState, onCardPick, cards = [], selectedCards = [] }
                         layoutId={card.id}
                         className="absolute will-change-transform" // Performance hint
                         initial={false}
+                        style={{
+                            left: '50%',
+                            marginLeft: isMobile ? '-30px' : '-45px', // Center the card execution context
+                            top: '10px'
+                        }}
                         animate={{
                             x: gameState === 'shuffling' ? [0, -10, 10, -5, 5, 0] : style.x,
                             y: gameState === 'shuffling' ? [0, 5, -5, 0] : style.y,
