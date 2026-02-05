@@ -14,8 +14,8 @@ public class GeminiService : IGeminiService
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
-    // Updated to gemini-1.5-pro as requested by user (potentially more stable/better for this task)
-    private const string BaseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent";
+    // Updated to gemini-2.0-flash as requested
+    private const string BaseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
     public GeminiService(HttpClient httpClient, IConfiguration configuration)
     {
