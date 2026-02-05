@@ -137,8 +137,8 @@ using (var scope = app.Services.CreateScope())
     try 
     {
         var context = services.GetRequiredService<AppDbContext>();
-        // Apply migrations automatically
-        context.Database.Migrate(); 
+        // Apply migrations automatically - DISABLED for Pooler stability (Port 6543)
+        // context.Database.Migrate(); 
         DbSeeder.Seed(context);
     }
     catch (Exception ex)
