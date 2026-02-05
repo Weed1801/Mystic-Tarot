@@ -9,7 +9,7 @@ const MuteButton = () => {
         <button
             onClick={toggleMute}
             className="fixed top-4 right-4 z-50 p-2 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm transition-all border border-white/10"
-            title={isMuted ? "Unmute" : "Mute"}
+            title={isMuted ? "Bật Âm Thanh" : "Tắt Âm Thanh"}
         >
             {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
         </button>
