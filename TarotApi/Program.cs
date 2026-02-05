@@ -29,19 +29,59 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         {
             if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
             {
-                var uri = new Uri(connectionString);
-                var userInfo = uri.UserInfo.Split(':');
-                var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder
-                {
-                    Host = uri.Host,
-                    Port = uri.Port > 0 ? uri.Port : 5432,
-                    Username = userInfo[0],
-                    Password = userInfo[1],
-                    Database = uri.LocalPath.TrimStart('/'),
-                    SslMode = Npgsql.SslMode.Require, 
-                    TrustServerCertificate = true // Often required for cloud hosted DBs like Supabase/Render
-                };
-                connectionString = npgsqlBuilder.ToString();
+               // Custom parsing to handle passwords with special characters (like @) effectively
+               // Format: scheme://user:password@host:port/database
+               
+               var cleanStr = connectionString.Replace("postgresql://", "").Replace("postgres://", "");
+               
+               // Find separation between credentials and host (last @) because password might contain @
+               var lastAt = cleanStr.LastIndexOf('@');
+               if (lastAt > 0)
+               {
+                   var credentials = cleanStr.Substring(0, lastAt);
+                   var hostPart = cleanStr.Substring(lastAt + 1);
+                   
+                   // Host part: host:port/db
+                   var slashIndex = hostPart.IndexOf('/');
+                   var dbName = "postgres";
+                   var hostPort = hostPart;
+
+                   if (slashIndex > 0)
+                   {
+                       hostPort = hostPart.Substring(0, slashIndex);
+                       // Handle potential query parameters like ?sslmode=...
+                       var dbPart = hostPart.Substring(slashIndex + 1);
+                       dbName = dbPart.Split('?')[0];
+                   }
+                   
+                   var hostSplit = hostPort.Split(':');
+                   var host = hostSplit[0];
+                   var port = hostSplit.Length > 1 ? int.Parse(hostSplit[1]) : 5432;
+                   
+                   // Credentials part: user:pass
+                   var firstColon = credentials.IndexOf(':');
+                   if (firstColon > 0)
+                   {
+                       var username = credentials.Substring(0, firstColon);
+                       var password = credentials.Substring(firstColon + 1);
+                       
+                       // Decode if it was URL encoded, but also handle raw
+                       // Usually raw in env vars. Uri.UnescapeDataString could be used if we suspect encoding.
+                       // For now, take as is.
+                       
+                       var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder
+                       {
+                            Host = host,
+                            Port = port,
+                            Username = username,
+                            Password = password,
+                            Database = dbName,
+                            SslMode = Npgsql.SslMode.Require,
+                            TrustServerCertificate = true // Often required for cloud hosted DBs like Supabase/Render
+                       };
+                       connectionString = npgsqlBuilder.ToString();
+                   }
+               }
             }
         }
         catch (Exception ex)
