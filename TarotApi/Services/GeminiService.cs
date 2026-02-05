@@ -37,19 +37,26 @@ public class GeminiService : IGeminiService
             var cardDescriptions = string.Join("\n", cards.Select((c, i) => 
                 $"Card {i + 1}: {c.Name} ({c.UprightKeywords}) - Description: {c.Meaning}"));
 
+            
             var prompt = $@"
-You are a mystical, empathetic Tarot Reader speaking Vietnamese.
-The user asks: '{userQuestion}'
-The cards drawn are:
+Bạn là một Tarot Reader chuyên nghiệp, mang phong cách huyền bí, giọng điệu thấu cảm và sâu sắc.
+Người dùng đang hỏi: '{userQuestion}'
+Các lá bài đã rút được:
 {cardDescriptions}
 
-Weave a coherent story that answers the user's question. Do not just list definitions. Connect the cards (Past, Present, Future).
-Return the response VALID JSON format strictly (no markdown code blocks) with the following structure:
+Nhiệm vụ của bạn:
+1. Hãy dệt nên một câu chuyện mạch lạc, kết nối ý nghĩa của 3 lá bài (Quá khứ - Hiện tại - Tương lai) để trả lời câu hỏi của người dùng.
+2. Đừng chỉ liệt kê ý nghĩa từng lá bài một cách rời rạc. Hãy phân tích sự tương tác giữa chúng.
+3. Lời tiên tri cần CỤ THỂ, RÕ RÀNG, đi thẳng vào vấn đề, tránh nói chung chung nước đôi.
+4. Đưa ra lời khuyên thiết thực giải quyết vấn đề của người dùng.
+
+Yêu cầu định dạng:
+Trả về kết quả CHỈ là chuỗi JSON hợp lệ (không bao gồm markdown code block ```json ... ```), với cấu trúc chính xác sau:
 {{
-  ""past_analysis"": ""..."",
-  ""present_analysis"": ""..."",
-  ""future_analysis"": ""..."",
-  ""final_advice"": ""...""
+  ""past_analysis"": ""[Phân tích lá bài quá khứ: Nguyên nhân sâu xa hoặc nền tảng của vấn đề]..."",
+  ""present_analysis"": ""[Phân tích lá bài hiện tại: Tình hình thực tế, năng lượng chi phối, thuận lợi/khó khăn]..."",
+  ""future_analysis"": ""[Phân tích lá bài tương lai: Xu hướng phát triển nếu đi theo đường hướng hiện tại]..."",
+  ""final_advice"": ""[Lời khuyên tổng kết: Hành động cụ thể cần làm, thái độ cần có, hoặc thông điệp cốt lõi từ vũ trụ]...""
 }}
 ";
 
@@ -58,6 +65,11 @@ Return the response VALID JSON format strictly (no markdown code blocks) with th
                 contents = new[]
                 {
                     new { parts = new[] { new { text = prompt } } }
+                },
+                generationConfig = new 
+                {
+                    maxOutputTokens = 2000,
+                    temperature = 0.7
                 }
             };
 
@@ -118,11 +130,11 @@ Return the response VALID JSON format strictly (no markdown code blocks) with th
     {
         // Simple fallback JSON generator
         return JsonSerializer.Serialize(new 
-        {
-            past_analysis = $"Lá bài {cards[0].Name} cho thấy quá khứ của bạn gắn liền với {cards[0].UprightKeywords}. Các vì sao đang bị che khuất, nhưng năng lượng này rất rõ ràng.",
-            present_analysis = $"Tại thời điểm này, {cards[1].Name} xuất hiện như một dấu hiệu của {cards[1].UprightKeywords}. Hãy chú ý đến trực giác của bạn.",
-            future_analysis = $"Tương lai mang đến {cards[2].Name}. Đây là điềm báo về {cards[2].UprightKeywords}. Hãy chuẩn bị tinh thần đón nhận.",
-            final_advice = "Hiện tại kết nối với Vũ trụ (API) đang gián đoạn. Hãy suy ngẫm về ý nghĩa của từng lá bài trên. Câu trả lời nằm trong chính bạn."
+
+            past_analysis = $"Lá bài {cards[0].Name} xuất hiện ở vị trí Quá Khứ. Ý nghĩa: {cards[0].Meaning}. Điều này cho thấy những trải nghiệm đã qua đang ảnh hưởng mạnh mẽ đến bạn.",
+            present_analysis = $"Tại vị trí Hiện Tại, {cards[1].Name} hiện diện. Thông điệp: {cards[1].Meaning}. Đây là năng lượng chủ đạo mà bạn cần lưu tâm ngay lúc này.",
+            future_analysis = $"Lá bài {cards[2].Name} dự báo Tương Lai. Ý nghĩa: {cards[2].Meaning}. Hãy chuẩn bị tinh thần để đón nhận những thay đổi này.",
+            final_advice = "Hiện tại kết nối với Vũ trụ (API) đang gián đoạn nên lời tiên tri chi tiết chưa thể gửi đến bạn. Hãy suy ngẫm về ý nghĩa của 3 lá bài trên, câu trả lời nằm trong chính trực giác của bạn."
         });
     }
 }

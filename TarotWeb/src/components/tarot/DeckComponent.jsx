@@ -51,8 +51,9 @@ const DeckComponent = ({ gameState, onCardPick, cards = [], selectedCards = [] }
 
     const isInteractive = gameState === 'picking';
 
+
     return (
-        <div className={`relative h-64 flex justify-center items-center transition-all duration-500 ${gameState === 'picking' ? 'w-full max-w-4xl' : 'w-40'}`}>
+        <div className={`relative h-64 flex justify-center items-center transition-all duration-500 transform scale-[0.55] sm:scale-75 md:scale-100 origin-bottom ${gameState === 'picking' ? 'w-full max-w-4xl' : 'w-40'}`}>
             {displayCards.map((card, i) => {
                 if (selectedCards.some(s => s.id === card.id)) return null;
                 const style = getCardStyle(i, displayCards.length);

@@ -90,14 +90,34 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         }
     }
     
+    // Verify and start Npgsql Connection configuration
+    var finalConnectionStringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(connectionString);
+    
+    // CRITICAL: Disable prepared statements for Supabase Transaction Pooler (Supavisor) compatibility
+    // Supavisor in Transaction Mode does not support prepared statements efficiently or at all in some configs.
+    finalConnectionStringBuilder.MaxAutoPrepare = 0;
+    
+    // Enable KeepAlive to prevent connections from being dropped by intermediate proxies (like Azure/AWS load balancers or Supavisor)
+    finalConnectionStringBuilder.KeepAlive = 30;
+
+    connectionString = finalConnectionStringBuilder.ToString();
+
     // Log the start of the connection string for debugging (don't log the password!)
     if (!string.IsNullOrEmpty(connectionString))
     {
-        var safeLog = connectionString.Length > 15 ? connectionString.Substring(0, 15) + "..." : "ShortString";
-        Console.WriteLine($"Using Connection String starting with: {safeLog}");
+        var safeLog = connectionString.Length > 25 ? connectionString.Substring(0, 25) + "..." : "ShortString";
+        Console.WriteLine($"Using Connection String: {safeLog}");
     }
 
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql(connectionString, o => 
+    {
+        o.EnableRetryOnFailure(
+            maxRetryCount: 5, 
+            maxRetryDelay: TimeSpan.FromSeconds(30), 
+            errorCodesToAdd: null
+        );
+        o.CommandTimeout(30); // Default command timeout
+    });
 });
 
 builder.Services.AddHttpClient<IGeminiService, GeminiService>();

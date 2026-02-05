@@ -39,7 +39,7 @@ const TarotCard = ({
                 transformStyle: "preserve-3d",
                 ...style
             }}
-            className={`relative w-32 h-48 md:w-40 md:h-60 cursor-pointer ${className || ''}`}
+            className={`relative w-28 h-44 sm:w-32 sm:h-48 md:w-40 md:h-60 cursor-pointer ${className || ''}`}
         >
             <div className="absolute inset-0 backface-hidden" style={{ backfaceVisibility: 'hidden' }}>
                 <CardBack />

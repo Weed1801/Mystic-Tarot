@@ -20,10 +20,13 @@ const Slot = ({ label, card, isRevealed, onReveal, analysis, canReveal, onReadin
         }
     };
 
+
     return (
-        <div className={`flex flex-col items-center gap-4 w-full md:w-1/3 max-w-[200px] md:max-w-xs transition-opacity duration-500 ${!canReveal && !isRevealed ? 'opacity-50 grayscale' : 'opacity-100'}`}>
+        <div className={`flex flex-col items-center gap-3 w-full md:w-1/3 max-w-[280px] md:max-w-xs transition-opacity duration-500 ${!canReveal && !isRevealed ? 'opacity-50 grayscale' : 'opacity-100'}`}>
             <h3 className="text-mystic-gold font-serif tracking-widest text-sm uppercase opacity-80">{label}</h3>
-            <div className={`w-32 h-48 md:w-40 md:h-60 rounded-xl border-2 border-dashed ${canReveal || isRevealed ? 'border-mystic-gold/60' : 'border-white/10'} flex items-center justify-center bg-black/20 backdrop-blur-sm transition-all relative`}>
+
+            {/* Card Container - Matches TarotCard responsive sizes */}
+            <div className={`w-28 h-44 sm:w-32 sm:h-48 md:w-40 md:h-60 rounded-xl border-2 border-dashed ${canReveal || isRevealed ? 'border-mystic-gold/60' : 'border-white/10'} flex items-center justify-center bg-black/20 backdrop-blur-sm transition-all relative`}>
                 {!card && <span className="text-white/20 text-4xl font-serif opacity-50">?</span>}
 
                 {card && (
@@ -56,16 +59,18 @@ const Slot = ({ label, card, isRevealed, onReveal, analysis, canReveal, onReadin
             </div>
 
             {/* Analysis Text Area */}
-            <div className="min-h-[100px] w-full mt-2">
-                {isRevealed && analysis && (
+            <div className="w-full mt-2 min-h-[160px] md:h-56 relative group">
+                {isRevealed && analysis ? (
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-white/90 text-sm font-serif text-center bg-black/40 p-3 rounded border border-white/10 shadow-inner"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="w-full h-full text-white/90 text-sm font-serif text-center bg-black/40 p-3 md:p-4 rounded-xl border border-white/10 shadow-inner overflow-y-auto custom-scrollbar"
                     >
-                        <strong className="block text-mystic-gold mb-1 text-xs uppercase tracking-wide">{card?.name}</strong>
+                        <strong className="block text-mystic-gold mb-2 text-xs uppercase tracking-widest border-b border-white/10 pb-1 sticky top-0 bg-black/40 backdrop-blur-sm z-10">{card?.name}</strong>
                         <TypewriterText text={analysis} delay={30} onComplete={handleTypewriterComplete} />
                     </motion.div>
+                ) : (
+                    <div className="w-full h-full rounded-xl border-2 border-dashed border-white/5 bg-white/5 animate-pulse" />
                 )}
             </div>
         </div>
@@ -97,24 +102,46 @@ const SpreadArea = ({ cards = [], isRevealed, onCardReveal, readingResult }) => 
         return null;
     };
 
+
+    const allCardsRevealed = cards.every(c => c.isRevealed);
+
     return (
-        <div className="flex flex-wrap justify-center gap-8 md:gap-8 w-full max-w-6xl px-4 min-h-[450px]">
-            {slots.map((slot, index) => (
-                <Slot
-                    key={slot.key}
-                    label={slot.label}
-                    card={cards[index]}
-                    isRevealed={isRevealed && cards[index]?.isRevealed}
-                    onReveal={onCardReveal}
-                    analysis={isRevealed && cards[index]?.isRevealed ? getAnalysis(slot.key) : null}
-                    canReveal={index === 0 || index <= readingProgress + 1}
-                    onReadingComplete={() => {
-                        if (index > readingProgress) {
-                            setReadingProgress(index);
-                        }
-                    }}
-                />
-            ))}
+        <div className="w-full flex flex-col items-center gap-8">
+            <div className="flex flex-wrap justify-center gap-8 md:gap-8 w-full max-w-6xl px-4 min-h-[450px]">
+                {slots.map((slot, index) => (
+                    <Slot
+                        key={slot.key}
+                        label={slot.label}
+                        card={cards[index]}
+                        isRevealed={isRevealed && cards[index]?.isRevealed}
+                        onReveal={onCardReveal}
+                        analysis={isRevealed && cards[index]?.isRevealed ? getAnalysis(slot.key) : null}
+                        canReveal={index === 0 || index <= readingProgress + 1}
+                        onReadingComplete={() => {
+                            if (index > readingProgress) {
+                                setReadingProgress(index);
+                            }
+                        }}
+                    />
+                ))}
+            </div>
+
+            {/* Final Advice Section */}
+            {isRevealed && allCardsRevealed && (readingResult?.final_advice || readingResult?.finalAdvice) && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1, duration: 0.8 }}
+                    className="w-full max-w-4xl p-6 md:p-8 mt-4 rounded-xl border border-mystic-gold/30 bg-black/60 backdrop-blur-md shadow-[0_0_30px_rgba(255,215,0,0.1)]"
+                >
+                    <h3 className="text-xl md:text-2xl font-serif text-mystic-gold text-center mb-4 uppercase tracking-widest">
+                        Lời Khuyên Từ Vũ Trụ
+                    </h3>
+                    <div className="text-white/90 text-base md:text-lg font-serif leading-relaxed text-center">
+                        <TypewriterText text={readingResult.final_advice || readingResult.finalAdvice} delay={20} />
+                    </div>
+                </motion.div>
+            )}
         </div>
     );
 };
