@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --color-mystic-dark: #1a1a2e;
+  --color-mystic-purple: #16213e;
+  --color-mystic-deep: #0f3460;
+  --color-mystic-gold: #e94560;
+  --color-mystic-text: #e0e0e0;
+
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Merriweather', serif;
+}
+
+@layer base {
+  body {
+    @apply bg-mystic-dark text-mystic-text antialiased font-sans overflow-hidden selection:bg-mystic-gold selection:text-white;
+  }
+}
+
+@layer utilities {
+  .backface-hidden {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+}
