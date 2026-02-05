@@ -68,7 +68,6 @@ const DeckComponent = ({ gameState, onCardPick, cards = [], selectedCards = [] }
                             y: gameState === 'shuffling' ? [0, 5, -5, 0] : style.y,
                             rotate: gameState === 'shuffling' ? [0, -5, 5, -3, 3, 0] : style.rotate,
                             zIndex: style.zIndex,
-                            scale: gameState === 'shuffling' ? [1, 1.05, 0.95, 1.02, 1] : 1,
                             scale: gameState === 'shuffling' ? [1, 1.05, 0.95, 1.02, 1] : 1
                         }}
                         whileHover={isInteractive ? {
