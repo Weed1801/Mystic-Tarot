@@ -25,104 +25,112 @@ public class ReadingController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateReading([FromBody] ReadingRequest request)
     {
-        if (request.SelectedCardIds.Count != 3)
-        {
-            return BadRequest("Please select exactly 3 cards for a Past, Present, Future reading.");
-        }
-
-        // 1. Retrieve Cards
-        var cards = await _context.TarotCards
-            .Where(c => request.SelectedCardIds.Contains(c.Id))
-            .ToListAsync();
-
-        if (cards.Count != 3)
-        {
-            return BadRequest("Invalid card IDs provided. Some cards were not found.");
-        }
-
-        // Ensure order matches request if important, or just pass as set. 
-        // Logic: assume order in ID list maps to Positions [Past, Present, Future] logic in Gemini Service is generic
-        // but for saving we might want to be specific.
-        // For simplicity, we just pass the list.
-
-        // 2. Call Gemini Service
-        string rawResult;
         try
         {
-            rawResult = await _geminiService.GetReadingAsync(request.Question, cards);
+            Console.WriteLine($"Received reading request for question: {request.Question ?? "Empty"}");
+
+            if (request.SelectedCardIds == null || request.SelectedCardIds.Count != 3)
+            {
+                Console.WriteLine($"Invalid Card Count: {request.SelectedCardIds?.Count}");
+                return BadRequest("Please select exactly 3 cards for a Past, Present, Future reading.");
+            }
+
+            // 1. Retrieve Cards
+            var cards = await _context.TarotCards
+                .Where(c => request.SelectedCardIds.Contains(c.Id))
+                .ToListAsync();
+
+            if (cards.Count != 3)
+            {
+                Console.WriteLine($"Cards not found in DB. Requested: {string.Join(",", request.SelectedCardIds)}. Found: {cards.Count}");
+                return BadRequest("Invalid card IDs provided. Some cards were not found.");
+            }
+
+            // 2. Call Gemini Service
+            string rawResult;
+            try
+            {
+                rawResult = await _geminiService.GetReadingAsync(request.Question, cards);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Gemini Service CRITICAL FAIL: {ex}");
+                // Fallback handled in service, but if it leaks:
+                return StatusCode(500, $"Error contacting AI service: {ex.Message}");
+            }
+
+            // 3. Parse Result
+            ReadingResultJson parsedResult;
+            try 
+            {
+                 parsedResult = JsonSerializer.Deserialize<ReadingResultJson>(rawResult, new JsonSerializerOptions
+                 {
+                     PropertyNameCaseInsensitive = true
+                 }) ?? new ReadingResultJson();
+            }
+            catch (Exception jsonEx)
+            {
+                 Console.WriteLine($"JSON Parse Error: {jsonEx.Message}. Raw: {rawResult}");
+                 // Fallback if JSON parsing fails but we have text
+                 parsedResult = new ReadingResultJson { FinalAdvice = rawResult };
+            }
+
+            // 4. Save Session
+            var session = new ReadingSession
+            {
+                Id = Guid.NewGuid(),
+                UserQuestion = request.Question,
+                ReadingType = "ThreeCardSpread",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.ReadingSessions.Add(session);
+
+            // 5. Save Reading Cards
+            var orderedCards = request.SelectedCardIds
+                .Select(id => cards.First(c => c.Id == id)) // This could fail if duplicates exist in request but not in DB list? No, checked count.
+                .ToList();
+
+            var positions = new[] { "Past", "Present", "Future" };
+
+            for (int i = 0; i < 3; i++)
+            {
+                _context.ReadingCards.Add(new ReadingCard
+                {
+                    SessionId = session.Id,
+                    CardId = orderedCards[i].Id,
+                    Position = positions[i],
+                    IsReversed = false 
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            // 6. Return Response
+            return Ok(new ReadingResponse
+            {
+                SessionId = session.Id,
+                PastAnalysis = parsedResult.PastAnalysis,
+                PresentAnalysis = parsedResult.PresentAnalysis,
+                FutureAnalysis = parsedResult.FutureAnalysis,
+                FinalAdvice = parsedResult.FinalAdvice,
+                Cards = orderedCards.Select((c, i) => new ReadingCardDto 
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    ImageUrl = c.ImageUrl,
+                    Position = positions[i],
+                    IsReversed = false
+                }).ToList()
+            });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Error contacting AI service: {ex.Message}");
+            Console.WriteLine($"CONTROLLER ERROR: {ex.GetType().Name} - {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+            if (ex.InnerException != null) Console.WriteLine($"Inner: {ex.InnerException.Message}");
+            return StatusCode(500, "An internal server error occurred while processing your reading.");
         }
-
-        // 3. Parse Result
-        ReadingResultJson parsedResult;
-        try 
-        {
-             parsedResult = JsonSerializer.Deserialize<ReadingResultJson>(rawResult, new JsonSerializerOptions
-             {
-                 PropertyNameCaseInsensitive = true
-             }) ?? new ReadingResultJson();
-        }
-        catch
-        {
-             // Fallback if JSON parsing fails
-             parsedResult = new ReadingResultJson { FinalAdvice = rawResult };
-        }
-
-
-        // 4. Save Session
-        var session = new ReadingSession
-        {
-            Id = Guid.NewGuid(),
-            UserQuestion = request.Question,
-            ReadingType = "ThreeCardSpread",
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.ReadingSessions.Add(session);
-
-        // 5. Save Reading Cards
-        // Assuming order: 0 = Past, 1 = Present, 2 = Future based on input array order, 
-        // BUT the DB cards query might return in any order.
-        // Let's resolve order by matching with request IDs
-        var orderedCards = request.SelectedCardIds
-            .Select(id => cards.First(c => c.Id == id))
-            .ToList();
-
-        var positions = new[] { "Past", "Present", "Future" };
-
-        for (int i = 0; i < 3; i++)
-        {
-            _context.ReadingCards.Add(new ReadingCard
-            {
-                SessionId = session.Id,
-                CardId = orderedCards[i].Id,
-                Position = positions[i],
-                IsReversed = false // Simplified for now
-            });
-        }
-
-        await _context.SaveChangesAsync();
-
-        // 6. Return Response
-        return Ok(new ReadingResponse
-        {
-            SessionId = session.Id,
-            PastAnalysis = parsedResult.PastAnalysis,
-            PresentAnalysis = parsedResult.PresentAnalysis,
-            FutureAnalysis = parsedResult.FutureAnalysis,
-            FinalAdvice = parsedResult.FinalAdvice,
-            Cards = orderedCards.Select((c, i) => new ReadingCardDto 
-            {
-                Id = c.Id,
-                Name = c.Name,
-                ImageUrl = c.ImageUrl,
-                Position = positions[i],
-                IsReversed = false
-            }).ToList()
-        });
     }
     
     // Internal class for JSON deserialization
