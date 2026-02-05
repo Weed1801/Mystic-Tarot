@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173") // Allow Vite frontend
+            policy.AllowAnyOrigin() // Allow specific Vercel URL in production ideally, but allowing all for now to ensure connection works
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
