@@ -130,7 +130,7 @@ Trả về kết quả CHỈ là chuỗi JSON hợp lệ (không bao gồm markd
     {
         // Simple fallback JSON generator
         return JsonSerializer.Serialize(new 
-
+        {
             past_analysis = $"Lá bài {cards[0].Name} xuất hiện ở vị trí Quá Khứ. Ý nghĩa: {cards[0].Meaning}. Điều này cho thấy những trải nghiệm đã qua đang ảnh hưởng mạnh mẽ đến bạn.",
             present_analysis = $"Tại vị trí Hiện Tại, {cards[1].Name} hiện diện. Thông điệp: {cards[1].Meaning}. Đây là năng lượng chủ đạo mà bạn cần lưu tâm ngay lúc này.",
             future_analysis = $"Lá bài {cards[2].Name} dự báo Tương Lai. Ý nghĩa: {cards[2].Meaning}. Hãy chuẩn bị tinh thần để đón nhận những thay đổi này.",
