@@ -14,8 +14,8 @@ public class GeminiService : IGeminiService
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
-    // Updated to gemini-2.0-flash as requested
-    private const string BaseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+    // Updated to gemini-1.5-flash for higher rate limits and stability
+    private const string BaseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
     public GeminiService(HttpClient httpClient, IConfiguration configuration)
     {
@@ -83,7 +83,8 @@ Trả về kết quả CHỈ là chuỗi JSON hợp lệ (không bao gồm markd
             if (!response.IsSuccessStatusCode)
             {
                  var errorContent = await response.Content.ReadAsStringAsync();
-                 Console.WriteLine($"Gemini API Error: {errorContent}");
+                 Console.WriteLine($"Gemini API Error (Status: {response.StatusCode}): {errorContent}");
+                 // Graceful handling for 429 or other errors
                  return GenerateFallbackReading(cards);
             }
             
@@ -134,7 +135,7 @@ Trả về kết quả CHỈ là chuỗi JSON hợp lệ (không bao gồm markd
             past_analysis = $"Lá bài {cards[0].Name} xuất hiện ở vị trí Quá Khứ. Ý nghĩa: {cards[0].Meaning}. Điều này cho thấy những trải nghiệm đã qua đang ảnh hưởng mạnh mẽ đến bạn.",
             present_analysis = $"Tại vị trí Hiện Tại, {cards[1].Name} hiện diện. Thông điệp: {cards[1].Meaning}. Đây là năng lượng chủ đạo mà bạn cần lưu tâm ngay lúc này.",
             future_analysis = $"Lá bài {cards[2].Name} dự báo Tương Lai. Ý nghĩa: {cards[2].Meaning}. Hãy chuẩn bị tinh thần để đón nhận những thay đổi này.",
-            final_advice = "Hiện tại kết nối với Vũ trụ (API) đang gián đoạn nên lời tiên tri chi tiết chưa thể gửi đến bạn. Hãy suy ngẫm về ý nghĩa của 3 lá bài trên, câu trả lời nằm trong chính trực giác của bạn."
+            final_advice = "Vũ trụ đang quá tải tin nhắn. Tuy nhiên, lá bài này mang năng lượng tích cực. Hãy tin vào trực giác của bạn lúc này."
         });
     }
 }
