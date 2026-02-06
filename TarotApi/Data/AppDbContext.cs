@@ -27,5 +27,14 @@ public class AppDbContext : DbContext
             .HasOne(rc => rc.Card)
             .WithMany()
             .HasForeignKey(rc => rc.CardId);
+
+        // Configure Max Lengths for large text to prevent truncation
+        modelBuilder.Entity<ReadingSession>(entity =>
+        {
+            entity.Property(e => e.PastAnalysis).HasMaxLength(4000);
+            entity.Property(e => e.PresentAnalysis).HasMaxLength(4000);
+            entity.Property(e => e.FutureAnalysis).HasMaxLength(4000);
+            entity.Property(e => e.FinalAdvice).HasMaxLength(4000);
+        });
     }
 }

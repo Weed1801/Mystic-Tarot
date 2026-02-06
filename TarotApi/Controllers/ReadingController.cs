@@ -55,8 +55,8 @@ public class ReadingController : ControllerBase
             catch (Exception ex)
             {
                 Console.WriteLine($"Gemini Service CRITICAL FAIL: {ex}");
-                // Fallback handled in service, but if it leaks:
-                return StatusCode(500, $"Error contacting AI service: {ex.Message}");
+                // Return specific error to frontend so user knows it's an AI connection issue
+                return StatusCode(503, $"AI Service Unavailable: {ex.Message}");
             }
 
             // 3. Parse Result
@@ -81,7 +81,12 @@ public class ReadingController : ControllerBase
                 Id = Guid.NewGuid(),
                 UserQuestion = request.Question,
                 ReadingType = "ThreeCardSpread",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                // Assign the parsed analysis to the entity
+                PastAnalysis = parsedResult.PastAnalysis ?? "",
+                PresentAnalysis = parsedResult.PresentAnalysis ?? "",
+                FutureAnalysis = parsedResult.FutureAnalysis ?? "",
+                FinalAdvice = parsedResult.FinalAdvice ?? ""
             };
 
             _context.ReadingSessions.Add(session);
@@ -104,7 +109,18 @@ public class ReadingController : ControllerBase
                 });
             }
 
-            await _context.SaveChangesAsync();
+            try 
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException dbEx)
+            {
+                var innerMessage = dbEx.InnerException?.Message ?? dbEx.Message;
+                Console.WriteLine($"Database Update Error: {innerMessage}");
+                // Log the full stack trace for deep debugging if needed
+                Console.WriteLine(dbEx.ToString());
+                throw; // Re-throw to be caught by the outer catch block which returns 500
+            }
 
             // 6. Return Response
             return Ok(new ReadingResponse

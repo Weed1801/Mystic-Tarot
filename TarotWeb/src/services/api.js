@@ -20,7 +20,11 @@ export const postReading = async (question, selectedCardIds) => {
 
         return await response.json();
     } catch (error) {
-        console.error('API Error:', error);
+        console.error('API Error Details:', {
+            message: error.message,
+            stack: error.stack,
+            url: `${API_BASE_URL}/Reading`
+        });
         throw error;
     }
 };

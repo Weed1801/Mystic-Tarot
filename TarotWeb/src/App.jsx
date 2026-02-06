@@ -166,15 +166,17 @@ function App() {
           </div>
 
           {/* Deck Area - Compact on mobile */}
-          <div className="h-64 md:h-80 w-full flex items-center justify-center relative z-20">
-            {gameState !== 'revealing' && gameState !== 'intro' && gameState !== 'analyzing' && (
-              <DeckComponent
-                gameState={gameState}
-                onCardPick={handleCardPick}
-                cards={deck}
-                selectedCards={selectedCards}
-              />
-            )}
+          <div className="fixed bottom-0 left-0 w-full md:relative md:w-full h-[180px] md:h-80 flex items-center justify-center z-50 md:z-20 bg-gradient-to-t from-black via-black/80 to-transparent md:bg-none pointer-events-none md:pointer-events-auto">
+            <div className="pointer-events-auto w-full h-full flex items-center justify-center">
+              {gameState !== 'revealing' && gameState !== 'intro' && gameState !== 'analyzing' && (
+                <DeckComponent
+                  gameState={gameState}
+                  onCardPick={handleCardPick}
+                  cards={deck}
+                  selectedCards={selectedCards}
+                />
+              )}
+            </div>
           </div>
 
           {/* Controls - e.g. Reset */}

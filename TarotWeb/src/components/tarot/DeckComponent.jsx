@@ -109,8 +109,8 @@ const DeckComponent = ({ gameState, onCardPick, cards = [], selectedCards = [] }
                             className="shadow-lg"
                             // Pass explicit small dimensions for the deck view to save pixel rendering
                             style={{
-                                width: isMobile ? '60px' : '90px',
-                                height: isMobile ? '100px' : '150px'
+                                width: isMobile ? '80px' : '90px',
+                                height: isMobile ? '135px' : '150px'
                             }}
                         />
                     </motion.div>
