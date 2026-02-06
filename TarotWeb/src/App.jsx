@@ -119,7 +119,7 @@ function App() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 overflow-y-auto overflow-x-hidden">
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-start pt-10 pb-10 p-4 overflow-y-auto overflow-x-hidden">
       <Background />
       <MuteButton />
 
@@ -166,7 +166,7 @@ function App() {
           </div>
 
           {/* Deck Area - Compact on mobile */}
-          <div className="h-40 md:h-60 w-full flex items-center justify-center relative z-20">
+          <div className="h-64 md:h-80 w-full flex items-center justify-center relative z-20">
             {gameState !== 'revealing' && gameState !== 'intro' && gameState !== 'analyzing' && (
               <DeckComponent
                 gameState={gameState}

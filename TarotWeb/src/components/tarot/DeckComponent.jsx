@@ -60,7 +60,7 @@ const DeckComponent = ({ gameState, onCardPick, cards = [], selectedCards = [] }
 
     return (
         <div className={`relative flex justify-center items-center transition-all duration-500 
-            ${gameState === 'picking' ? 'h-64 w-full max-w-4xl' : 'h-40 w-32'}
+            ${gameState === 'picking' ? 'h-80 w-full max-w-4xl' : 'h-40 w-32'}
             ${isInteractive ? 'cursor-pointer' : ''}
         `}>
             {displayCards.map((card, i) => {

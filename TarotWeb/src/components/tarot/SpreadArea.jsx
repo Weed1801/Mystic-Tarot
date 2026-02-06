@@ -58,21 +58,23 @@ const Slot = ({ label, card, isRevealed, onReveal, analysis, canReveal, onReadin
                 )}
             </div>
 
-            {/* Analysis Text Area */}
-            <div className="w-full mt-2 min-h-[160px] md:h-56 relative group">
-                {isRevealed && analysis ? (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="w-full h-full text-white/90 text-sm font-serif text-center bg-black/40 p-3 md:p-4 rounded-xl border border-white/10 shadow-inner overflow-y-auto custom-scrollbar"
-                    >
-                        <strong className="block text-mystic-gold mb-2 text-xs uppercase tracking-widest border-b border-white/10 pb-1 sticky top-0 bg-black/40 backdrop-blur-sm z-10">{card?.name}</strong>
-                        <TypewriterText text={analysis} delay={30} onComplete={handleTypewriterComplete} />
-                    </motion.div>
-                ) : (
-                    <div className="w-full h-full rounded-xl border-2 border-dashed border-white/5 bg-white/5 animate-pulse" />
-                )}
-            </div>
+            {/* Analysis Text Area - Only show when reading is happening/done */}
+            {isRevealed && (
+                <div className="w-full mt-2 min-h-[160px] md:h-56 relative group">
+                    {analysis ? (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="w-full h-full text-white/90 text-sm font-serif text-center bg-black/40 p-3 md:p-4 rounded-xl border border-white/10 shadow-inner overflow-y-auto custom-scrollbar"
+                        >
+                            <strong className="block text-mystic-gold mb-2 text-xs uppercase tracking-widest border-b border-white/10 pb-1 sticky top-0 bg-black/40 backdrop-blur-sm z-10">{card?.name}</strong>
+                            <TypewriterText text={analysis} delay={30} onComplete={handleTypewriterComplete} />
+                        </motion.div>
+                    ) : (
+                        <div className="w-full h-full rounded-xl border-2 border-dashed border-white/5 bg-white/5 animate-pulse" />
+                    )}
+                </div>
+            )}
         </div>
     );
 };
