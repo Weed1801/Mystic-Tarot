@@ -11,7 +11,7 @@ const CardBack = () => (
 
 const CardFront = ({ image, name }) => (
     <div className="w-full h-full rounded-xl bg-white border-2 border-mystic-gold shadow-2xl overflow-hidden relative backface-hidden">
-        <img src={image} alt={name} className="w-full h-full object-cover" />
+        <img src={image} alt={name} className="w-full h-full object-fill" />
         <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 text-center backdrop-blur-sm">
             <span className="text-mystic-gold font-serif text-sm uppercase tracking-wider">{name}</span>
         </div>
@@ -39,7 +39,7 @@ const TarotCard = ({
                 transformStyle: "preserve-3d",
                 ...style
             }}
-            className={`relative w-32 h-48 md:w-40 md:h-60 cursor-pointer ${className || ''}`}
+            className={`relative w-full h-full cursor-pointer ${className || ''}`}
         >
             <div className="absolute inset-0 backface-hidden" style={{ backfaceVisibility: 'hidden' }}>
                 <CardBack />

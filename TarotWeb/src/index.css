@@ -13,7 +13,7 @@
 
 @layer base {
   body {
-    @apply bg-mystic-dark text-mystic-text antialiased font-sans overflow-hidden selection:bg-mystic-gold selection:text-white;
+    @apply bg-mystic-dark text-mystic-text antialiased font-sans overflow-x-hidden overflow-y-auto selection:bg-mystic-gold selection:text-white;
   }
 }
 

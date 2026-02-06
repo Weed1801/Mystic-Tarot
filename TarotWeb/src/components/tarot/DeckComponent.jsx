@@ -6,31 +6,44 @@ import { useSound } from '../../contexts/SoundContext';
 const DeckComponent = ({ gameState, onCardPick, cards = [], selectedCards = [] }) => {
     const { playSound } = useSound();
     // Generate a visual subset of cards for the deck/fan animation
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [displayCards, setDisplayCards] = useState([]);
 
     useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
         if (cards.length > 0) {
-            setDisplayCards(cards.map((c, i) => ({ ...c, index: i, zIndex: i })));
+            // OPTIMIZATION: Limit the number of rendered DOM elements.
+            // Rendering 78 cards with physics animations kills mobile performance.
+            // 15 cards is enough to create the visual illusion of a full deck stack.
+            const maxCards = isMobile ? 15 : 30;
+            const subset = cards.slice(0, maxCards);
+
+            setDisplayCards(subset.map((c, i) => ({ ...c, index: i, zIndex: i })));
         } else {
             // Fallback
-            const fallback = Array.from({ length: 24 }, (_, i) => ({ id: `deck-card-${i}`, index: i }));
+            const fallback = Array.from({ length: isMobile ? 15 : 24 }, (_, i) => ({ id: `deck-card-${i}`, index: i }));
             setDisplayCards(fallback);
         }
-    }, [cards]);
+    }, [cards, isMobile]);
 
     // Fan Animation Variants
     const getCardStyle = (index, total) => {
         if (gameState === 'fanning' || gameState === 'picking') {
-            const spreadAngle = 120; // Total angle of the fan
+            const spreadAngle = isMobile ? 80 : 120; // Reduced angle for mobile
             const startAngle = -spreadAngle / 2;
             const angleStep = spreadAngle / (total - 1);
             const rotate = startAngle + index * angleStep;
 
             // Calculate X/Y based on arc
-            const radius = 400; // Radius of the arc circle
+            const radius = isMobile ? 150 : 400; // Smaller radius for mobile
             const radian = (rotate * Math.PI) / 180;
-            const x = Math.sin(radian) * radius * 0.6; // Scale down horizontal spread
-            const y = Math.cos(radian) * -radius * 0.2 + 50; // Flatten the arc slightly
+            const x = Math.sin(radian) * radius * (isMobile ? 1.5 : 0.6); // Adjust spread width
+            const y = Math.cos(radian) * -radius * (isMobile ? 0.3 : 0.2) + (isMobile ? 20 : 50);
 
             return {
                 x,
@@ -64,12 +77,11 @@ const DeckComponent = ({ gameState, onCardPick, cards = [], selectedCards = [] }
                         className="absolute"
                         initial={false}
                         animate={{
-                            x: gameState === 'shuffling' ? [0, -10, 10, -5, 5, 0] : style.x,
-                            y: gameState === 'shuffling' ? [0, 5, -5, 0] : style.y,
-                            rotate: gameState === 'shuffling' ? [0, -5, 5, -3, 3, 0] : style.rotate,
+                            x: gameState === 'shuffling' ? (isMobile ? [0, -5, 5, 0] : [0, -10, 10, -5, 5, 0]) : style.x,
+                            y: gameState === 'shuffling' ? (isMobile ? [0, 2, -2, 0] : [0, 5, -5, 0]) : style.y,
+                            rotate: gameState === 'shuffling' ? (isMobile ? [0, -2, 2, 0] : [0, -5, 5, -3, 3, 0]) : style.rotate,
                             zIndex: style.zIndex,
-                            scale: gameState === 'shuffling' ? [1, 1.05, 0.95, 1.02, 1] : 1,
-                            scale: gameState === 'shuffling' ? [1, 1.05, 0.95, 1.02, 1] : 1
+                            scale: gameState === 'shuffling' ? (isMobile ? [1, 1.02, 1] : [1, 1.05, 0.95, 1.02, 1]) : 1
                         }}
                         whileHover={isInteractive ? {
                             scale: 1.2,
